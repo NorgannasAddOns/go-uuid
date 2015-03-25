@@ -1,7 +1,6 @@
 package uuid
 
 import (
-	"fmt"
 	"time"
 	"math/rand"
 )
@@ -44,8 +43,6 @@ func Date(what string) *time.Time {
 	if len(what) != 20 {
 		return nil
 	}
-
-	fmt.Println(rune(what[1]), what[2], what[3])
 
 	a := safeCharsIdx[rune(what[1])]
 	b := safeCharsIdx[rune(what[2])]
