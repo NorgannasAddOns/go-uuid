@@ -18,6 +18,10 @@
       fmt.Println("Generated around", uuid.Date(id))
     }
 
+## Documentation
+
+http://godoc.org/github.com/NorgannasAddOns/go-uuid
+
 ## License:
 
 Project code is released under CC0 license:
