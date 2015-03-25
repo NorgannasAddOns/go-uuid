@@ -66,9 +66,7 @@ func New(c string) string {
 	d[0] = c[0]
 	now := ^^(time.Now().UnixNano() / 1000000)
 	weeks := ^^(now / timeFrame)
-	ff := timeFrame * 55
-	over := now - (weeks * timeFrame)
-	remain := int64((float64(over) / float64(timeFrame)) * 55)
+	remain := int64((float64(now - (weeks * timeFrame)) / float64(timeFrame)) * 55)
 
 	weeks -= 2000;
 
