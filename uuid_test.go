@@ -16,11 +16,11 @@ func TestUUID(t *testing.T) {
 	}
 	fmt.Println(" - is valid")
 
-	if Type(id) != "T" {
-		fmt.Println("Newly generated id is not of right type")
+	if Code(id) != "T" {
+		fmt.Println("Newly generated id is not of right code")
 		t.FailNow()
 	}
-	fmt.Println(" - is correct type");
+	fmt.Println(" - is correct code");
 
 	age := time.Now().Sub(*Date(id))
 	if age.Seconds() > 5 {
@@ -42,17 +42,34 @@ func TestUUID(t *testing.T) {
 	}
 	fmt.Println(" - is valid")
 
-	if Type(id) != "T" {
-		fmt.Println("Constant id is not of right type")
+	if Code(id) != "T" {
+		fmt.Println("Constant id is not of right code")
 		t.FailNow()
 	}
-	fmt.Println(" - is correct type");
+	fmt.Println(" - is correct code");
 
-	date := Date(id).UTC().Format(time.RFC3339)
+	tm := Date(id)
+	date := tm.UTC().Format(time.RFC3339)
 
 	if date != "2015-03-25T12:48:56Z" {
 		fmt.Println("Constant id did not decode correct date")
 		t.FailNow()
 	}
 	fmt.Println(" - date is correct", date)
+
+	idBefore := Before(*tm)
+	fmt.Println("Before id", idBefore)
+
+	if idBefore >= id {
+		fmt.Println("Before id is on the wrong side of constant id")
+		t.FailNow()
+	}
+	fmt.Println(" - is less than constant id of same date")
+
+	if idBefore[:4] != id[:4] {
+		fmt.Println("Before id does not have same timefield as constant id")
+		t.FailNow()
+	}
+	fmt.Println(" - matches constant id timefield")
+	
 }

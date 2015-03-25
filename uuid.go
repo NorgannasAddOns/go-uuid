@@ -59,7 +59,7 @@ func Date(what string) *time.Time {
 	return &tm
 }
 
-func Type(what string) string {
+func Code(what string) string {
 	if len(what) != 20 || !Valid(what) {
 		return ""
 	}
@@ -67,7 +67,7 @@ func Type(what string) string {
 	return string(what[5])
 }
 
-func New(c string) string {
+func create(c string, t time.Time, zeroed bool) string {
 	if len(c) != 1 {
 		c = "1"
 	}
@@ -75,7 +75,7 @@ func New(c string) string {
  	d := make([]byte, 20)
 	var now, weeks, remain, remain2, remain3, offset, scale float64
 
-	now  = float64(time.Now().UnixNano())/1000000
+	now  = float64(t.UnixNano())/1000000
 	weeks = math.Floor(now / timeFrame)
 	offset = now - weeks * timeFrame
 	scale = 55
@@ -97,12 +97,24 @@ func New(c string) string {
 	d[5] = c[0]
 
 	for i := 6; i < 19; i++ {
-		d[i] = safeChars[rand.Int31n(54)]
+		if zeroed {
+			d[i] = c[0]
+		} else {
+			d[i] = safeChars[rand.Int31n(54)]
+		}
 	}
 	d[19] = 0;
 
 	d[19] = checkDigit(string(d))
 
 	return string(d)
+}
+
+func New(code string) string {
+	return create(code, time.Now(), false)
+}
+
+func Before(date time.Time) string {
+	return create("0", date, true)
 }
 
