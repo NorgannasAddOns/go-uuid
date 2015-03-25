@@ -1,6 +1,6 @@
 # go-uuid
 
-Simple 20 character sequential complex unique id generator with type character, embedded timestamp, and check digit.
+20 character quasi-sequential complex unique id generator with type character, embedded timestamp, and check digit.
 
 ## Example:
 
