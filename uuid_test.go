@@ -66,7 +66,7 @@ func TestUUID(t *testing.T) {
 	}
 	fmt.Println(" - is less than constant id of same date")
 
-	if idBefore[:4] != id[:4] {
+	if idBefore[:5] != id[:5] {
 		fmt.Println("Before id does not have same timefield as constant id")
 		t.FailNow()
 	}

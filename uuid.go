@@ -52,9 +52,10 @@ func Date(what string) *time.Time {
 	e := safeCharsIdx[byte(what[4])]
 
 	t := (a * 55 + b + 2000) * timeFrame
-	t += math.Floor(c * timeFrame / 55)
-	t += math.Floor(d * timeFrame / (55 * 55))
-	t += math.Floor(e * timeFrame / (55 * 55 * 55))
+	t += c * timeFrame / 55
+	t += d * timeFrame / (55 * 55)
+	t += e * timeFrame / (55 * 55 * 55)
+	t = math.Ceil(t)
 	tm := time.Unix(int64(math.Floor(t/1000)), (int64(t) % 1000) * 1000000)
 	return &tm
 }
