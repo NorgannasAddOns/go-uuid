@@ -2,6 +2,8 @@
 
 20 character quasi-sequential complex unique id generator with type character, embedded timestamp, and check digit.
 
+See: http://www.triddin.com/mongo-and-objectids/
+
 ## Example:
 
     package main
@@ -21,6 +23,8 @@
 ## Documentation
 
 http://godoc.org/github.com/NorgannasAddOns/go-uuid
+
+http://www.triddin.com/mongo-and-objectids/
 
 ## License:
 
