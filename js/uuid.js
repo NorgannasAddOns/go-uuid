@@ -111,6 +111,6 @@ var uuid = (function uuid(){
 
     return uuid;
 })();
-if ('undefined' !== typeof exports) {
-    exports = uuid;
+if ('undefined' !== typeof module && module.exports) {
+    module.exports = uuid;
 }
