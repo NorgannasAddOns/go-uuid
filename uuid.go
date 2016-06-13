@@ -97,6 +97,9 @@ func create(c string, t time.Time, zeroed bool) string {
 	d[4] = safeChars[int64(remain3)]
 	d[5] = c[0]
 
+	if !zeroed {
+		rand.Seed(time.Now().UnixNano())
+	}
 	for i := 6; i < 19; i++ {
 		if zeroed {
 			d[i] = c[0]
