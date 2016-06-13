@@ -1,9 +1,9 @@
 package uuid
 
 import (
-	"time"
 	"math"
 	"math/rand"
+	"time"
 )
 
 var safeChars string = "23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz"
@@ -20,7 +20,7 @@ func checkDigit(what string) uint8 {
 	var hash int32 = 0
 	n := len(what)
 
-	for i := 0; i < n - 1; i++ {
+	for i := 0; i < n-1; i++ {
 		hash = ((hash << 5) - hash) + int32(what[i])
 		hash |= 0
 	}
@@ -33,92 +33,101 @@ func checkDigit(what string) uint8 {
 	return safeChars[hash]
 }
 
-
 func Valid(what string) bool {
+	if len(what) != 20 && len(what) != 22 {
+		return false
+	}
 	check := checkDigit(what)
-	digit := what[19]
+	digit := what[len(what)-1]
 	return check == digit
 }
 
 func Date(what string) *time.Time {
-	if len(what) != 20 || !Valid(what) {
+	if !Valid(what) {
 		return nil
 	}
 
 	a := safeCharsIdx[byte(what[0])]
 	b := safeCharsIdx[byte(what[1])]
-	c := safeCharsIdx[byte(what[2])]
-	d := safeCharsIdx[byte(what[3])]
-	e := safeCharsIdx[byte(what[4])]
+	t := (a*55 + b + 2000) * timeFrame
 
-	t := (a * 55 + b + 2000) * timeFrame
-	t += c * timeFrame / 55
-	t += d * timeFrame / (55 * 55)
-	t += e * timeFrame / (55 * 55 * 55)
+	m := float64(55)
+	l := 3 + (len(what) - 20)
+	for i := 1; i <= l; i++ {
+		c := safeCharsIdx[byte(what[1+i])]
+		t += c * timeFrame / m
+		m *= 55
+	}
+
 	t = math.Ceil(t)
-	tm := time.Unix(int64(math.Floor(t/1000)), (int64(t) % 1000) * 1000000)
+	tm := time.Unix(int64(math.Floor(t/1000)), (int64(t)%1000)*int64(time.Millisecond))
 	return &tm
 }
 
 func Code(what string) string {
-	if len(what) != 20 || !Valid(what) {
+	if !Valid(what) {
 		return ""
 	}
 
-	return string(what[5])
+	return string(what[len(what)-15])
 }
 
-func create(c string, t time.Time, zeroed bool) string {
+func create(c string, t time.Time, zeroed bool, milli bool) string {
 	if len(c) != 1 {
 		c = "1"
 	}
 
- 	d := make([]byte, 20)
-	var now, weeks, remain, remain2, remain3, offset, scale float64
+	var (
+		now    float64
+		weeks  float64
+		offset float64
+		scale  float64
+		last   int = 3
+		d      []byte
+	)
 
-	now  = float64(t.UnixNano())/1000000
+	if milli {
+		last += 2
+	}
+
+	d = make([]byte, 20+(last-3))
+
+	now = float64(t.UnixNano()) / float64(time.Millisecond)
 	weeks = math.Floor(now / timeFrame)
-	offset = now - weeks * timeFrame
+	offset = now - weeks*timeFrame
 	scale = 55
-	remain = math.Floor(offset / timeFrame * scale)
-	offset -= remain * timeFrame / scale
-	scale *= 55
-	remain2 = math.Floor(offset / timeFrame * scale)
-	offset -= remain2 * timeFrame / scale
-	scale *= 55
-	remain3 = math.Floor(offset / timeFrame * scale)
+	weeks -= 2000
 
-	weeks -= 2000;
+	d[0] = safeChars[int64(math.Floor(weeks/55))%55]
+	d[1] = safeChars[int64(weeks)%55]
 
-	d[0] = safeChars[int64(math.Floor(weeks / 55)) % 55]
-	d[1] = safeChars[int64(weeks) % 55]
-	d[2] = safeChars[int64(remain)]
-	d[3] = safeChars[int64(remain2)]
-	d[4] = safeChars[int64(remain3)]
-	d[5] = c[0]
+	for i := 1; i <= last; i++ {
+		remain := math.Floor(offset / timeFrame * scale)
+		offset -= remain * timeFrame / scale
+		scale *= 55
+		d[1+i] = safeChars[int64(remain)]
+	}
+
+	d[2+last] = c[0]
 
 	if !zeroed {
 		rand.Seed(time.Now().UnixNano())
 	}
-	for i := 6; i < 19; i++ {
+	for i := last + 3; i < 16+last; i++ {
 		if zeroed {
 			d[i] = c[0]
 		} else {
 			d[i] = safeChars[rand.Int31n(54)]
 		}
 	}
-	d[19] = 0;
+	d[16+last] = 0
 
-	d[19] = checkDigit(string(d))
+	d[16+last] = checkDigit(string(d))
 
 	return string(d)
 }
 
-func New(code string) string {
-	return create(code, time.Now(), false)
-}
-
-func Before(date time.Time) string {
-	return create("0", date, true)
-}
-
+func New(code string) string            { return create(code, time.Now(), false, false) }
+func Before(date time.Time) string      { return create("0", date, true, false) }
+func NewMilli(code string) string       { return create(code, time.Now(), false, true) }
+func BeforeMilli(date time.Time) string { return create("0", date, true, true) }

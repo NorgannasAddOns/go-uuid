@@ -2,8 +2,8 @@ package uuid
 
 import (
 	"fmt"
-	"time"
 	"testing"
+	"time"
 )
 
 func TestUUID(t *testing.T) {
@@ -20,18 +20,18 @@ func TestUUID(t *testing.T) {
 		fmt.Println("Newly generated id is not of right code")
 		t.FailNow()
 	}
-	fmt.Println(" - is correct code");
+	fmt.Println(" - is correct code")
 
 	age := time.Now().Sub(*Date(id))
 	if age.Seconds() > 5 {
-		fmt.Println("Newly generated id is too old", age);
+		fmt.Println("Newly generated id is too old", age)
 		t.FailNow()
 	}
 	if age.Seconds() < 0 {
-		fmt.Println("Newly generated id is too young");
+		fmt.Println("Newly generated id is too young")
 		t.FailNow()
 	}
-	fmt.Println(" - is only", age, "old");
+	fmt.Println(" - is only", age, "old")
 
 	id = "8ZwLeTmHZDb89WknvTtq"
 	fmt.Println("Constant UUID", id)
@@ -46,7 +46,7 @@ func TestUUID(t *testing.T) {
 		fmt.Println("Constant id is not of right code")
 		t.FailNow()
 	}
-	fmt.Println(" - is correct code");
+	fmt.Println(" - is correct code")
 
 	tm := Date(id)
 	date := tm.UTC().Format(time.RFC3339)
@@ -71,5 +71,30 @@ func TestUUID(t *testing.T) {
 		t.FailNow()
 	}
 	fmt.Println(" - matches constant id timefield")
-	
+
+	id = NewMilli("T")
+	fmt.Println("New Millisecond UUID", id)
+
+	if !Valid(id) {
+		fmt.Println("Newly generated id is not valid")
+		t.FailNow()
+	}
+	fmt.Println(" - is valid")
+
+	if Code(id) != "T" {
+		fmt.Println("Newly generated id is not of right code")
+		t.FailNow()
+	}
+	fmt.Println(" - is correct code")
+
+	age = time.Now().Sub(*Date(id))
+	if age.Nanoseconds()/int64(time.Millisecond) > 2 {
+		fmt.Println("Newly generated id is too old", age)
+		t.FailNow()
+	}
+	if age.Nanoseconds()/int64(time.Millisecond) < 0 {
+		fmt.Println("Newly generated id is too young")
+		t.FailNow()
+	}
+	fmt.Println(" - is only", age, "old")
 }

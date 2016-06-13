@@ -28,34 +28,36 @@ class UUID
         if ($hash >= 55) $hash = 54;
         return self::$safe_chars[$hash];
     }
-    private static function create($c = null, $t = null, $zeroed = false)
+    private static function create($c = null, $t = null, $zeroed = false, $milli = false)
     {
         if (!is_string($c) || strlen($c) != 1) $c = '1';
         if (empty($t)) $t = microtime(true);
+
+        $last = 3;
+        if ($milli) {
+            $last += 2;
+        }
 
         $d = [];
         $now = floor($t*1000);
         $weeks = floor($now / self::$timeframe);
         $offset = $now - $weeks * self::$timeframe;
         $scale = 55;
-        $remain = floor($offset / self::$timeframe * $scale);
-        $offset -= $remain * self::$timeframe / $scale;
-        $scale *= 55;
-        $remain2 = floor($offset / self::$timeframe * $scale);
-        $offset -= $remain2 * self::$timeframe / $scale;
-        $scale *= 55;
-        $remain3 = floor($offset / self::$timeframe * $scale);
-
         $weeks -= 2000;
 
         $d[0] = self::$safe_chars[floor($weeks / 55) % 55];
         $d[1] = self::$safe_chars[$weeks % 55];
-        $d[2] = self::$safe_chars[(int)$remain];
-        $d[3] = self::$safe_chars[(int)$remain2];
-        $d[4] = self::$safe_chars[(int)$remain3];
-        $d[5] = $c;
 
-        for ($i = 6; $i < 19; $i++) {
+        for ($i = 1; $i <= $last; $i++) {
+            $remain = floor($offset / self::$timeframe * $scale);
+            $offset -= $remain * self::$timeframe / $scale;
+            $scale *= 55;
+            $d[1+$i] = self::$safe_chars[(int)$remain];
+        }
+
+        $d[2+$last] = $c;
+
+        for ($i = $last+3; $i < 16+$last; $i++) {
             if ($zeroed) {
                 $d[$i] = $c;
             } else {
@@ -65,9 +67,9 @@ class UUID
                 $d[$i] = self::$safe_chars[$r];
             }
         }
-        $d[19] = 0;
+        $d[16+$last] = 0;
 
-        $d[19] = self::check_digit($d);
+        $d[16+$last] = self::check_digit($d);
 
         return implode('', $d);
     }
@@ -76,6 +78,7 @@ class UUID
         if (!is_array($what)) {
             $what = str_split($what);
         }
+        if (count($what) !== 20 || count($what) !== 22) return false;
         return self::check_digit($what) === $what[count($what)-1];
     }
     public static function date($what)
@@ -83,17 +86,19 @@ class UUID
         if (!is_array($what)) {
             $what = str_split($what);
         }
-        if (count($what) !== 20 || !self::valid($what)) return false;
+        if (!self::valid($what)) return false;
 
         $a = strpos(self::$safe_chars, $what[0]);
         $b = strpos(self::$safe_chars, $what[1]);
-        $c = strpos(self::$safe_chars, $what[2]);
-        $d = strpos(self::$safe_chars, $what[3]);
-        $e = strpos(self::$safe_chars, $what[4]);
         $t = ($a * 55 + $b + 2000) * self::$timeframe;
-        $t += ($c * self::$timeframe / 55);
-        $t += ($d * self::$timeframe / (55 * 55));
-        $t += ($e * self::$timeframe / (55 * 55 * 55));
+
+        $m = 55;
+        $l = 3 + (count($what) - 20);
+        for ($i = 1; $i <= $l; $i++) {
+            $c = strpos(self::$safe_chars, $what[1+$i]);
+            $t += $c * self::$timeframe / $m;
+            $m *= 55;
+        }
 
         return ceil($t)/1000;
     }
@@ -102,7 +107,7 @@ class UUID
         if (!is_array($what)) {
             $what = str_split($what);
         }
-        if (count($what) !== 20 || !self::valid($what)) return "";
+        if (!self::valid($what)) return "";
         return $what[5];
     }
     public static function make($c = null)
@@ -113,21 +118,35 @@ class UUID
     {
         return self::create("0", $date, true);
     }
+    public static function make_milli($c = null)
+    {
+        return self::create($c, null, false, true);
+    }
+    public static function before_milli($date)
+    {
+        return self::create("0", $date, true, true);
+    }
 
     public static function test()
     {
-        $id = MongoishUUID::make();
+        $id = UUID::make();
         print("$id\n");
-        $v = MongoishUUID::valid($id);
+        $v = UUID::valid($id);
         print(($v?'valid':'invalid')."\n");
-        $d = MongoishUUID::date($id);
+        $d = UUID::date($id);
         print("$d\n");
-        $id2 = MongoishUUID::before($d);
+        $id2 = UUID::before($d);
         print("$id2\n");
-        $d2 = MongoishUUID::date($id2);
+        $d2 = UUID::date($id2);
         print("$d2\n");
-        $id3 = MongoishUUID::before($d2);
+        $id3 = UUID::before($d2);
         print("$id3\n");
+        $id4 = UUID::make_milli();
+        print("$id\n");
+        $v4 = UUID::valid($id4);
+        print(($v4?'valid':'invalid')."\n");
+        $d4 = UUID::date($id4);
+        print("$d4\n");
     }
 }
 
